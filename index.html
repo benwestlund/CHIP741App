@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steady</title>
+  <meta name="description" content="A private daily medication companion.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span class="brand-name">Steady</span>
+      </div>
+      <button class="hide-btn" id="quickHide" aria-label="Quick hide screen">Quick hide</button>
+    </header>
+
+    <!-- Reminder banner (shown when a dose is due) -->
+    <div class="banner" id="banner" hidden>
+      <span id="bannerText"></span>
+      <button class="link-btn" id="bannerTake">Mark done</button>
+    </div>
+
+    <main id="main">
+      <!-- TODAY -->
+      <section class="view" data-view="today">
+        <p class="eyebrow" id="todayDate"></p>
+        <h1 class="greet" id="greet"></h1>
+
+        <div class="dose-card" id="doseCard">
+          <div class="ring" id="ring" aria-hidden="true">
+            <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg" id="ringFg"/></svg>
+            <div class="ring-label"><span id="streakNum">0</span><small>day streak</small></div>
+          </div>
+          <div class="dose-info">
+            <p class="dose-status" id="doseStatus"></p>
+            <p class="dose-sub" id="doseSub"></p>
+            <button class="btn primary big" id="takeBtn">I took it</button>
+            <button class="link-btn" id="undoBtn" hidden>Undo</button>
+          </div>
+        </div>
+
+        <div class="week" id="week" aria-label="This week"></div>
+
+        <div class="card tip">
+          <p class="eyebrow">Tip of the day</p>
+          <p id="tipText"></p>
+        </div>
+
+        <div class="card" id="checkinCard">
+          <div class="card-head">
+            <h2>Daily check-in</h2>
+            <span class="pill" id="checkinState">Not yet</span>
+          </div>
+          <form id="checkinForm">
+            <fieldset>
+              <legend>How are you feeling?</legend>
+              <div class="choices" data-name="mood">
+                <button type="button" data-value="good">Good</button>
+                <button type="button" data-value="okay">Okay</button>
+                <button type="button" data-value="rough">Rough</button>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Any side effects today?</legend>
+              <div class="choices multi" data-name="side">
+                <button type="button" data-value="none">None</button>
+                <button type="button" data-value="nausea">Nausea</button>
+                <button type="button" data-value="headache">Headache</button>
+                <button type="button" data-value="tired">Tired</button>
+                <button type="button" data-value="other">Other</button>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Drinks in the last day?</legend>
+              <div class="choices" data-name="alcohol">
+                <button type="button" data-value="none">None</button>
+                <button type="button" data-value="1-2">1 to 2</button>
+                <button type="button" data-value="3+">3 or more</button>
+              </div>
+            </fieldset>
+            <label class="field">
+              <span>Anything else? (optional)</span>
+              <input type="text" id="checkinNote" maxlength="140" placeholder="Only you and, if you choose, your care team see this">
+            </label>
+            <button type="submit" class="btn">Save check-in</button>
+          </form>
+          <p class="feedback" id="checkinFeedback" hidden></p>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="view" data-view="history" hidden>
+        <h1>History</h1>
+        <div class="stats" id="stats"></div>
+        <div class="card">
+          <div class="card-head">
+            <button class="icon-btn" id="prevMonth" aria-label="Previous month">&lsaquo;</button>
+            <h2 id="monthLabel"></h2>
+            <button class="icon-btn" id="nextMonth" aria-label="Next month">&rsaquo;</button>
+          </div>
+          <div class="cal" id="cal"></div>
+          <div class="legend">
+            <span><i class="dot taken"></i>Taken</span>
+            <span><i class="dot missed"></i>Missed</span>
+            <span><i class="dot future"></i>Upcoming</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEARN -->
+      <section class="view" data-view="learn" hidden>
+        <h1>Learn</h1>
+        <p class="lede" id="learnLede"></p>
+        <div id="learnList"></div>
+        <h2 class="section-h">Resources</h2>
+        <ul class="resources" id="resourceList"></ul>
+      </section>
+
+      <!-- COACH -->
+      <section class="view coach-view" data-view="coach" hidden>
+        <h1>Coach</h1>
+        <p class="disclaimer" id="coachMode"></p>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="suggestions" id="suggestions">
+          <button type="button">I forgot my dose yesterday</button>
+          <button type="button">Can I drink on my meds?</button>
+          <button type="button">I'm worried someone will find out</button>
+        </div>
+        <form class="chat-input" id="chatForm">
+          <input type="text" id="chatText" placeholder="Ask anything" autocomplete="off" aria-label="Message">
+          <button class="btn primary" type="submit">Send</button>
+        </form>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="view" data-view="profile" hidden>
+        <h1>Profile</h1>
+        <form class="card" id="profileForm">
+          <label class="field"><span>Name or nickname</span><input type="text" id="pName" maxlength="30"></label>
+          <label class="field"><span>I'm using this for</span>
+            <select id="pTrack">
+              <option value="prep">PrEP (staying HIV negative)</option>
+              <option value="art">HIV treatment (ART)</option>
+            </select>
+          </label>
+          <label class="field"><span>Medicine name (optional, stays on this device)</span><input type="text" id="pMed" maxlength="40"></label>
+          <label class="field"><span>Daily reminder time</span><input type="time" id="pTime"></label>
+          <label class="field"><span>Reminder wording (keep it private)</span><input type="text" id="pReminder" maxlength="50"></label>
+          <button class="btn primary" type="submit">Save</button>
+          <p class="feedback" id="profileFeedback" hidden></p>
+        </form>
+
+        <div class="card">
+          <h2>Reminders</h2>
+          <p class="muted">While Steady is open, it alerts you at your reminder time. For reminders when it is closed, add a daily event to your phone's calendar.</p>
+          <div class="row">
+            <button class="btn" id="notifyBtn">Turn on browser alerts</button>
+            <button class="btn" id="icsBtn">Add to calendar</button>
+          </div>
+          <p class="feedback" id="reminderFeedback" hidden></p>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Share with my care team</h2>
+            <label class="switch"><input type="checkbox" id="shareToggle"><span></span></label>
+          </div>
+          <p class="muted">When on, your provider can see your adherence summary and check-ins. Nothing is shared unless you turn this on.</p>
+          <button class="btn" id="providerBtn">Preview what they see</button>
+        </div>
+
+        <div class="card">
+          <h2>Demo tools</h2>
+          <p class="muted">For class presentation only.</p>
+          <div class="row">
+            <button class="btn" id="sampleBtn">Load 30 days of sample data</button>
+            <button class="btn danger" id="resetBtn">Erase everything</button>
+          </div>
+        </div>
+        <p class="fine">Steady is a class prototype (CHIP 741). Data stays in this browser. It is not medical advice.</p>
+      </section>
+
+      <!-- PROVIDER (mock) -->
+      <section class="view" data-view="care-team" hidden>
+        <button class="link-btn back" id="providerBack">&lsaquo; Back to Profile</button>
+        <p class="eyebrow">Care team view (simulated)</p>
+        <h1 id="provName">Patient summary</h1>
+        <p class="disclaimer">Prototype only. A real version would need patient consent, a secure server, and HIPAA-compliant storage.</p>
+        <div id="providerBody"></div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="Main">
+      <a href="#today" data-tab="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.3 2.3 4.7-5"/></svg>Today</a>
+      <a href="#history" data-tab="history"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>History</a>
+      <a href="#learn" data-tab="learn"><svg viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v13a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v13a2 2 0 012-2h6z"/></svg>Learn</a>
+      <a href="#coach" data-tab="coach"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z"/></svg>Coach</a>
+      <a href="#profile" data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-4 4-5.5 7-5.5s6 1.5 7 5.5"/></svg>Profile</a>
+    </nav>
+  </div>
+
+  <!-- Onboarding -->
+  <div class="overlay" id="onboard" hidden>
+    <div class="sheet">
+      <div class="steps" id="obSteps"><i class="on"></i><i></i><i></i></div>
+
+      <div class="ob-step" data-step="0">
+        <span class="logo big" aria-hidden="true"></span>
+        <h1>Welcome to Steady</h1>
+        <p class="lede">A private daily companion for staying on your medicine. Reminders, a simple log, and support when you need it.</p>
+        <p class="muted">Everything stays on this device.</p>
+        <button class="btn primary big" data-next>Get started</button>
+      </div>
+
+      <div class="ob-step" data-step="1" hidden>
+        <h1>What brings you here?</h1>
+        <p class="muted">This shapes your reminders and tips. You can change it anytime.</p>
+        <button class="option" data-track="prep"><strong>I take PrEP</strong><span>To stay HIV negative</span></button>
+        <button class="option" data-track="art"><strong>I'm living with HIV</strong><span>And take daily treatment (ART)</span></button>
+      </div>
+
+      <div class="ob-step" data-step="2" hidden>
+        <h1>Set your reminder</h1>
+        <label class="field"><span>What should we call you?</span><input type="text" id="obName" maxlength="30" placeholder="Nickname is fine"></label>
+        <label class="field"><span>Reminder time</span><input type="time" id="obTime" value="20:00"></label>
+        <label class="field"><span>Reminder wording</span><input type="text" id="obReminder" maxlength="50" value="Daily routine time"></label>
+        <p class="muted small">Pick wording that won't mean anything to someone glancing at your screen.</p>
+        <button class="btn primary big" id="obFinish">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN-free privacy cover -->
+  <div class="cover" id="cover" hidden>
+    <div class="cover-inner">
+      <p class="cover-time" id="coverTime"></p>
+      <p class="cover-sub">Notes</p>
+      <p class="muted small">Tap anywhere to return</p>
+    </div>
+  </div>
+
+  <script src="content.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
