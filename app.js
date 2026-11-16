@@ -165,6 +165,8 @@ const render = {
       });
     });
     $("#checkinNote").value = ci?.note || "";
+    $("#sideOther").value = ci?.sideOther || "";
+    syncOtherField();
     $("#checkinFeedback").hidden = true;
   },
 
@@ -255,7 +257,8 @@ const render = {
 
     const recent = ciDays.slice(-5).reverse().map((k) => {
       const c = state.checkins[k];
-      const side = (c.side || []).filter((s) => s !== "none").join(", ") || "none";
+      const side = (c.side || []).filter((s) => s !== "none")
+        .map((s) => (s === "other" && c.sideOther ? `other (${c.sideOther})` : s)).join(", ") || "none";
       return `<div class="prov-row"><span>${parseKey(k).toLocaleDateString([], { month: "short", day: "numeric" })}</span><span>Mood: ${esc(c.mood || "–")} · Side effects: ${esc(side)} · Drinks: ${esc(c.alcohol || "–")}${c.note ? ` · "${esc(c.note)}"` : ""}</span></div>`;
     }).join("") || `<p class="muted">No check-ins yet.</p>`;
 
@@ -305,6 +308,12 @@ $("#bannerTake").addEventListener("click", takeDose);
 $("#undoBtn").addEventListener("click", () => { delete state.doses[dayKey()]; save(); render.today(); });
 
 /* ---------- 9. Daily check-in ---------- */
+// Show a text box when "Other" side effect is selected
+function syncOtherField() {
+  const on = Boolean($('#checkinForm [data-name="side"] [data-value="other"].on'));
+  $("#sideOtherWrap").hidden = !on;
+  return on;
+}
 $$("#checkinForm .choices").forEach((group) => {
   group.addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -312,6 +321,7 @@ $$("#checkinForm .choices").forEach((group) => {
       if (b.dataset.value === "none") group.querySelectorAll("button").forEach((x) => x.classList.remove("on"));
       else group.querySelector('[data-value="none"]').classList.remove("on");
       b.classList.toggle("on");
+      if (syncOtherField() && b.dataset.value === "other") $("#sideOther").focus();
     } else {
       group.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
     }
@@ -321,7 +331,8 @@ $("#checkinForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const pick = (name) => $(`#checkinForm [data-name="${name}"] .on`)?.dataset.value || null;
   const side = $$('#checkinForm [data-name="side"] .on').map((b) => b.dataset.value);
-  state.checkins[dayKey()] = { mood: pick("mood"), side, alcohol: pick("alcohol"), note: $("#checkinNote").value.trim() };
+  const sideOther = side.includes("other") ? $("#sideOther").value.trim() : "";
+  state.checkins[dayKey()] = { mood: pick("mood"), side, sideOther, alcohol: pick("alcohol"), note: $("#checkinNote").value.trim() };
   save();
   render.today();
   // Tailored response to the check-in (the "keep people engaged" piece)
